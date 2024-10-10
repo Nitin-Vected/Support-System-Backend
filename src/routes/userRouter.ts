@@ -10,14 +10,7 @@ interface CustomRequest extends Request {
     };
 }
 
-
-
-
 const userRouter = express.Router();
-// userRouter.get('/', (request: express.Request, response: express.Response) => {
-//     console.log('Welcome user ..!');
-//     response.status(201).json({ msg: 'Hi, server has been connected successfully ..!' })
-// });
 
 userRouter.post("/userLogin", loginController);
 userRouter.get("/userAuthentication", userAuthenticationController);

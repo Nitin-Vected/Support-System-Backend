@@ -24,8 +24,7 @@ const UserSchema: mongoose.Schema = new Schema({
   },
   lastName: {
     type: String,
-    required: true,
-    trim: true,
+    required: false,
   },
   email: {
     type: String,
@@ -43,7 +42,7 @@ const UserSchema: mongoose.Schema = new Schema({
   },
   role: {
     type: String,
-    enum: ['Student', 'SupportAdmin'], 
+    enum: ['Student', 'SupportAdmin'],
     required: true,
   },
   status: {

@@ -1,4 +1,3 @@
-import e from 'express';
 import jwt from 'jsonwebtoken';
 
 interface Payload {
@@ -11,7 +10,7 @@ interface Token {
 }
 export const tokenGenerator = (data: Payload, secretKey: string) => {
     let token = '';
-    if (data.role === 'supportAdmin') {
+    if (data.role === 'SupportAdmin') {
         token = jwt.sign(data, secretKey, { expiresIn: '1d' });
         console.log('Admin Token ==> ', token);
     } else {
@@ -33,4 +32,3 @@ export const tokenVerifier = (token: any, secretKey: string) => {
         return error;
     }
 }
-

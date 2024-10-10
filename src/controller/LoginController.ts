@@ -34,7 +34,7 @@ export const loginController = async (
   try {
     const { tokenResponse } = request.body;
     const decodedToken = await verifyGoogleToken(tokenResponse);
-
+        console.log("DecodedToken ===>",decodedToken);
     if (decodedToken) {
       const { name, given_name, family_name, picture, email, email_verified } =
         decodedToken;
@@ -77,17 +77,24 @@ export const loginController = async (
             });
         }
       } else {
-        throw new Error("Account Not Exist ..!");
-        // userData = await userModel.create({
-        //     name: name,
-        //     firstName: given_name,
-        //     lastName: family_name,
-        //     email: email,
-        //     profileImg: picture,
-        //     role: 'SupportAdmin',
-        //     status: email_verified,
-        // });
-        // console.log('user has been registered successfully ..!', userData);
+       // throw new Error("Account Not Exist ..!");
+        // console.log("Aagaya inside else block ");
+               userData = await userModel.create({
+               name: name,
+               firstName: given_name,
+               lastName: family_name,
+               email: email,
+               profileImg: picture,
+               role: 'SupportAdmin',
+               status: email_verified,
+          });
+          response
+            .status(StatusCodes.OK)
+            .json({
+              message:
+                "success",
+            });
+         // console.log('user has been registered successfully ..!', userData);
       }
     }
   } catch (error) {

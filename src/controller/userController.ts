@@ -13,7 +13,7 @@ interface CustomRequest extends Request {
     };
 }
 
-export const userViewProfileController = async (request: CustomRequest, response: Response, next: NextFunction) => {
+export const userViewProfileController = async (request: CustomRequest, response: Response, next: NextFunction) => {       
     try {
         let email = request.payload?.email;
         if (!email) {
@@ -32,7 +32,7 @@ export const userViewProfileController = async (request: CustomRequest, response
         };
 
         if (result?.status) {
-            response.status(StatusCodes.OK).json({ userData: userData, message: "UserData fetched successfully ..!" });
+            response.status(StatusCodes.OK).json({ userData: userData, message: "UserData fetched successfully ..!" });    
         } else {
             response.status(StatusCodes.BAD_REQUEST).json({ userData: null, message: "The Account You are Trying to Access has been Deactivated ..!" });
         }
@@ -76,7 +76,7 @@ export const userRaiseQueryController = async (request: any, response: express.R
         const { name, email, role } = request.payload;
         const { subject, message } = request.body;
 
-        const similaryExistingQuery = await queryModel.findOne({ userEmail: email, userRole: role, subject, message });
+        const similaryExistingQuery = await queryModel.findOne({ userEmail: email, userRole: role, subject, message });    
         if (!similaryExistingQuery) {
             console.log('Inside if block of userRaiseQueryController ..!');
             // createUniqueQueryId();
@@ -122,7 +122,7 @@ export const userViewMyQueriesController = async (request: any, response: expres
         if (myQueries) {
             response.status(StatusCodes.OK).json({ myQueries: myQueries, message: "These are the recently raised queries by you ..!" });
         } else {
-            response.status(StatusCodes.NOT_FOUND).json({ myQueries: null, message: "No Queries are added by You ..!" });
+            response.status(StatusCodes.NOT_FOUND).json({ myQueries: null, message: "No Queries are added by You ..!" });  
         }
     } catch (error) {
         console.log('Error occure in userRaiseQueryController : ', error)
@@ -151,7 +151,7 @@ export const userAddCommentController = async (request: any, response: express.R
                 timestamp: new Date()
             });
             await query.save();
-            response.status(StatusCodes.OK).json({ message: "Your response has been sent to the trail successfully!" });
+            response.status(StatusCodes.OK).json({ message: "Your response has been sent to the trail successfully!" });   
         } else {
             response.status(StatusCodes.BAD_REQUEST).json({ error: 'Query has been closed by the user ..!' });
         }

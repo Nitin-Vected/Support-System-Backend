@@ -29,9 +29,9 @@ export const generateQueryId = async (email: string, role: string) => {
         console.log("Latest Query ---> ", latestQuery);
         let newCounter = 1;
         if (latestQuery && latestQuery.queryId) {
-            const numericPart = latestQuery.queryId.match(/\d+$/);  
+            const numericPart = latestQuery.queryId.match(/\d+$/);
             if (numericPart) {
-                newCounter = parseInt(numericPart[0]) + 1; 
+                newCounter = parseInt(numericPart[0]) + 1;
             };
         }
         while (!isUnique) {

@@ -23,24 +23,24 @@ interface Query extends Document {
 // Conversation Schema
 const ConversationSchema: Schema = new Schema({
   sender: { 
-    type: String, 
-    required: true 
+    type: String,
+    required: true
   },
-  email: { 
-    type: String, 
-    required: true 
+  email: {
+    type: String,
+    required: true
   },
-  message: { 
-    type: String, 
-    required: true 
+  message: {
+    type: String,
+    required: true
   },
-  timestamp: { 
-    type: Date, 
-    default: Date.now 
+  timestamp: {
+    type: Date,
+    default: Date.now
   },
-  role: { 
-    type: String, 
-    required: true 
+  role: {
+    type: String,
+    required: true
   }
 });
 
@@ -75,4 +75,3 @@ const QuerySchema: Schema = new Schema({
 }, { versionKey: false, timestamps: true });
 
 export default mongoose.model<Query>('QueryList', QuerySchema);
-

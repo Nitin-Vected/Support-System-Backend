@@ -16,33 +16,25 @@ const io = new Server(server, {
   },
 });
 
+// Connect to the database
 connectDB();
+
+// CORS middleware
 app.use(cors({
     origin: 'https://drivethrudrop.com', // or your domain name
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
+
+// Middleware to parse incoming request bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Use routers for user and admin routes
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 
-
-io.on("connection", (socket) => {
-  console.log("A User Connected:", socket.id);
-
-  socket.on("sendMessage", (message) => {
-    io.emit("receiveMessage", message);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("user disconnected:", socket.id);
-  });
-});
-app.use("/user", userRouter);
-app.use("/admin", adminRouter);
-
+// Socket.io connection
 io.on("connection", (socket) => {
   console.log("A User Connected:", socket.id);
 
@@ -55,6 +47,7 @@ io.on("connection", (socket) => {
   });
 });
 
+// Start the server
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
