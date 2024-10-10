@@ -11,16 +11,35 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://drivethrudrop.com",
     methods: ["GET", "POST"],
   },
 });
 
 connectDB();
-app.use(cors());
+app.use(cors({
+    origin: 'https://drivethrudrop.com', // or your domain name
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use("/user", userRouter);
+app.use("/admin", adminRouter);
+
+
+io.on("connection", (socket) => {
+  console.log("A User Connected:", socket.id);
+
+  socket.on("sendMessage", (message) => {
+    io.emit("receiveMessage", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected:", socket.id);
+  });
+});
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 
