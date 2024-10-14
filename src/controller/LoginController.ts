@@ -3,14 +3,17 @@ import axios from "axios";
 import userModel from "../model/userModel";
 import { tokenGenerator } from "../utilities/jwt";
 import {
-  ADMIN_SECRET_KEY,
+  generateUniqueId,
   GOOGLE_DECODE_TOKEN_API,
+  Messages,
   StatusCodes,
-  USER_SECRET_KEY,
 } from "../config";
+import roleModel from "../model/roleModel";
+
 interface TokenResponse {
   access_token: string;
 }
+
 const verifyGoogleToken = async (tokenResponse: TokenResponse) => {
   try {
     const result = await axios.get(`${GOOGLE_DECODE_TOKEN_API}`, {
@@ -18,12 +21,10 @@ const verifyGoogleToken = async (tokenResponse: TokenResponse) => {
         Authorization: `Bearer ${tokenResponse.access_token}`,
       },
     });
-    if (result.data) {
-      return result.data;
-    }
-    return null;
+    return result.data || null;
   } catch (error) {
-    console.log(error);
+    console.error("Error verifying token:", error);
+    return null; // Return null if there's an error
   }
 };
 
@@ -34,71 +35,64 @@ export const loginController = async (
   try {
     const { tokenResponse } = request.body;
     const decodedToken = await verifyGoogleToken(tokenResponse);
-        console.log("DecodedToken ===>",decodedToken);
-    if (decodedToken) {
-      const { name, given_name, family_name, picture, email, email_verified } =
-        decodedToken;
-      let userData = await userModel.findOne({ email: email });
-      if (userData) {
-        userData.email = email;
-        userData.name = name;
-        userData.profileImg = picture;
-        userData.firstName = given_name;
-        userData.lastName = family_name;
-        userData.status = email_verified;
-        await userData.save();
-        if (userData.status === "true") {
-          const payload = {
-            name,
-            email,
-            role: userData.role,
-            googleToken: tokenResponse?.access_token,
-            status: userData.status,
-          };
 
-          let token;
-          if (userData.role === "Student") {
-            token = tokenGenerator(payload, USER_SECRET_KEY);
-          } else {
-            token = tokenGenerator(payload, ADMIN_SECRET_KEY);
-          }
-
-          response.status(StatusCodes.CREATED).json({
-            userData: userData,
-            token: token,
-            message: "Login Successful!",
-          });
-        } else {
-          response
-            .status(StatusCodes.UNAUTHORIZED)
-            .json({
-              message:
-                "Account not verified. Please verify your account to login.",
-            });
-        }
-      } else {
-       // throw new Error("Account Not Exist ..!");
-        // console.log("Aagaya inside else block ");
-               userData = await userModel.create({
-               name: name,
-               firstName: given_name,
-               lastName: family_name,
-               email: email,
-               profileImg: picture,
-               role: 'SupportAdmin',
-               status: email_verified,
-          });
-          response
-            .status(StatusCodes.OK)
-            .json({
-              message:
-                "success",
-            });
-         // console.log('user has been registered successfully ..!', userData);
-      }
+    if (!decodedToken) {
+      return response.status(StatusCodes.UNAUTHORIZED).json({ message: "Invalid Google token!" });
     }
+
+    const { given_name, family_name, picture, email, email_verified } = decodedToken;
+    if (!email_verified) {
+      return response.status(StatusCodes.BAD_REQUEST).json({ message: Messages.GOOGLE_AUTHENTICATION_FAILED });
+    }
+
+    let user = await userModel.findOne({ email: email });
+    if (user) {
+      user.email = email;
+      user.firstName = given_name;
+      user.lastName = family_name;
+      user.profileImg = picture;
+      await user.save();
+    } else {
+      const userId = await generateUniqueId(userModel, "USER");
+      user = await userModel.create({
+        id: userId,
+        email,
+        firstName: given_name,
+        lastName: family_name,
+        profileImg: picture,
+        roleId: "ROLE0002",
+        contactNumber: "8319024349",
+        isActive: true,
+      });
+    }
+
+    const roleDetails = await roleModel.findOne({ id: user.roleId });
+    const result = {
+      name: given_name + " " + family_name,
+      email: email,
+      contactNumber: user.contactNumber,
+      profileImg: picture,
+      role: roleDetails?.name,
+    };
+
+    const payload = {
+      name: given_name + " " + family_name,
+      userId: user.id,
+      email,
+      roleId: user.roleId,
+      roleName: roleDetails ? roleDetails.name : "Not mentioned",
+      googleToken: tokenResponse?.access_token,
+      isActive: user.isActive,
+    };
+
+    const token = tokenGenerator(payload);
+    return response.status(StatusCodes.CREATED).json({
+      userData: result,
+      token: token,
+      message: "Login Successful!",
+    });
   } catch (error) {
-    console.log(error);
-    response.status(500).json({ message: "Account Not Exist ..!" });
+    console.error(error);
+    return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.SOMETHING_WENT_WRONG });
   }
 };

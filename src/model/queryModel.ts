@@ -11,7 +11,7 @@ interface Conversation {
 
 // Query interface extending mongoose Document
 interface Query extends Document {
-  queryId : string;
+  id: string;
   userEmail: string;
   subject: string;
   message: string;
@@ -22,7 +22,7 @@ interface Query extends Document {
 
 // Conversation Schema
 const ConversationSchema: Schema = new Schema({
-  sender: { 
+  sender: {
     type: String,
     required: true
   },
@@ -42,11 +42,11 @@ const ConversationSchema: Schema = new Schema({
     type: String,
     required: true
   }
-});
+}, { _id: false });
 
 // Query Schema
 const QuerySchema: Schema = new Schema({
-  queryId : {
+  id: {
     type: String,
     required: true,
     unique: true
@@ -74,4 +74,4 @@ const QuerySchema: Schema = new Schema({
   conversation: [ConversationSchema]
 }, { versionKey: false, timestamps: true });
 
-export default mongoose.model<Query>('QueryList', QuerySchema);
+export default mongoose.model<Query>('QueryList', QuerySchema, 'queryList');

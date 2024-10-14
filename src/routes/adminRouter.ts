@@ -1,19 +1,13 @@
 import express from "express";
 import {
-  adminAddContactNumberController,
-  adminAuthenticateJWT,
-  adminAuthenticationController,
-  adminGetQueryDataController,
-  adminManageQueryStatusController,
   adminManageStudentStatusController,
-  adminRaiseQueryController,
-  adminResponseController,
-  adminViewProfileController,
   adminViewRaisedQueryListController,
-  adminViewStudentListController,
-  adminViewSupportAdminListController,
   adminViewUserListController,
+  registerUserController,
 } from "../controller/adminController";
+import { updateContactNumberController, viewProfileController } from "../controller/profileController";
+import { authenticateJWT, authenticationController } from "../controller/authController";
+import { createQueryController, getQueryDataController, HandleQueryResponseController, manageQueryStatusController } from "../controller/queryController";
 
 const adminRouter = express.Router();
 
@@ -26,23 +20,22 @@ const adminRouter = express.Router();
 // });
 
 // adminRouter.post("/adminLogin", adminLoginController);
-adminRouter.get("/adminAuthentication", adminAuthenticationController);
+adminRouter.get("/adminAuthentication", authenticationController);
 
-adminRouter.use(adminAuthenticateJWT);
+adminRouter.use(authenticateJWT);
 
-adminRouter.get("/adminViewProfile", adminViewProfileController);
-adminRouter.get("/adminViewStudentList", adminViewStudentListController);
+adminRouter.get("/adminViewProfile", viewProfileController);
 adminRouter.get("/adminViewRaisedQueries", adminViewRaisedQueryListController);
-adminRouter.get('/adminGetQueryData/:queryId',adminGetQueryDataController);
+adminRouter.get('/adminGetQueryData/:queryId',getQueryDataController);
 
-adminRouter.get("/adminViewSupportAdminList", adminViewSupportAdminListController);
 adminRouter.get("/adminViewUserList", adminViewUserListController);
 
-adminRouter.post('/adminManageQueryStatus/:queryId/:status',adminManageQueryStatusController);
+adminRouter.post('/adminManageQueryStatus/:queryId/:status', manageQueryStatusController);
 adminRouter.get('/adminManageStudentStatus/:email/:action',adminManageStudentStatusController);
 
-adminRouter.post("/adminRaiseQuery", adminRaiseQueryController);
-adminRouter.post("/adminAddResponseToQuery/:queryId",adminResponseController);
-adminRouter.post("/adminAddContactNumber", adminAddContactNumberController);
+adminRouter.post("/adminRaiseQuery", createQueryController);
+adminRouter.post("/adminAddResponseToQuery/:queryId",HandleQueryResponseController);
+adminRouter.post("/registerUser",registerUserController);
+adminRouter.post("/adminAddContactNumber", updateContactNumberController);
 
 export default adminRouter;

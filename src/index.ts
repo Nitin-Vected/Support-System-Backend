@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./model/connection";
 import userRouter from "./routes/userRouter";
-import { PORT } from "./config";
+import { PORT, PRODUCTION_ORIGIN } from "./config";
 import adminRouter from "./routes/adminRouter";
 import http from "http";
 import { Server } from "socket.io";
@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://drivethrudrop.com",
+    origin: PRODUCTION_ORIGIN,
     methods: ["GET", "POST"],
   },
 });
@@ -21,16 +21,14 @@ connectDB();
 
 // CORS middleware
 app.use(cors({
-    origin: 'https://drivethrudrop.com', // or your domain name
+    origin: PRODUCTION_ORIGIN, 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
 
-// Middleware to parse incoming request bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Use routers for user and admin routes
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 

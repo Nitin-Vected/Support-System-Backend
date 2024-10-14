@@ -1,49 +1,9 @@
 import express from "express";
-import { tokenVerifier } from "../utilities/jwt";
-import { ADMIN_SECRET_KEY, generateQueryId, StatusCodes } from "../config";
+import { CustomRequest, generateUniqueId, Messages, StatusCodes } from "../config";
 import queryModel from "../model/queryModel";
 import userModel from "../model/userModel";
-
-export const adminViewProfileController = async (
-  request: any,
-  response: express.Response
-) => {
-  try {
-    const { email, role } = request.payload;
-    if (!email) {
-      response
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Token not found" });
-    } else {
-      const result = await userModel.findOne({ email, role });
-      const adminData = {
-        name: result?.name,
-        email: result?.email,
-        contactNumber: result?.contactNumber,
-        role: result?.role,
-        profileImg: result?.profileImg,
-      };
-      if (result?.status) {
-        response.status(StatusCodes.OK).json({
-          adminData: adminData,
-          message: "This is your dersired data ..!",
-        });
-      } else {
-        response.status(StatusCodes.NOT_FOUND).json({
-          adminData: null,
-          message:
-            "The Account You are Trying to Acces has been Deactivated ..!",
-        });
-      }
-    }
-  } catch (error) {
-    console.log(error);
-    response
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Something went wrong ..!" });
-  }
-};
-
+import { Request, Response } from "express";
+import roleModel from "../model/roleModel";
 export const adminViewRaisedQueryListController = async (
   request: express.Request,
   response: express.Response
@@ -72,71 +32,55 @@ export const adminViewRaisedQueryListController = async (
   }
 };
 
-export const adminViewStudentListController = async (
-  request: express.Request,
-  response: express.Response
-) => {
-  try {
-    const studentList = await userModel
-      .find({ role: "Student" }, { _id: 0 })
-      .select("name email contactNumber role profileImg status")
-      .sort({ updatedAt: -1, createdAt: -1 });
-
-    console.log("StudentList :: ", studentList);
-    if (studentList && studentList.length > 0) {
-      response.status(StatusCodes.OK).json({
-        studentList: studentList,
-        message: "These are the registered students!",
-      });
-    } else {
-      response
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Student list not found!" });
-    }
-  } catch (error) {
-    console.log("Error occurred in adminViewStudentListController: ", error);
-    response
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Something went wrong ..!" });
-  }
-};
-
-export const adminViewSupportAdminListController = async (
-  request: express.Request,
-  response: express.Response
-) => {
-  try {
-    const adminList = await userModel
-      .find({ role: "SupportAdmin" }, { _id: 0 })
-      .select("name email contactNumber role profileImg status")
-      .sort({ updatedAt: -1, createdAt: -1 });
-    if (adminList && adminList.length > 0) {
-      response.status(StatusCodes.OK).json({
-        adminList: adminList,
-        message: "These are the registered support admins ..!",
-      });
-    } else {
-      response
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Student list not found!" });
-    }
-  } catch (error) {
-    console.log("Error occure in userRaiseQueryController : ", error);
-    response
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Something went wrong ..!" });
-  }
-};
-
 export const adminViewUserListController = async (
   request: express.Request,
   response: express.Response
 ) => {
   try {
-    const userList = await userModel
-      .find({}, { _id: 0 })
-      .select("name email contactNumber role profileImg status")
-      .sort({ updatedAt: -1, createdAt: -1 });
+    console.log("Hello from adminViewUserListController")
+    const userList = await userModel.aggregate([
+      {
+        $project: {
+          _id: 0,
+          id: 1,
+          name: { $concat: ["$firstName", " ", "$lastName"] }, // Combine firstName and lastName
+          email: 1,
+          contactNumber: 1,
+          roleId: 1,
+          profileImg: 1,
+          isActive: 1,
+        },
+      },
+      {
+        $lookup: {
+          from: 'roleMaster',
+          localField: 'roleId',
+          foreignField: 'id',
+          as: 'roleDetails',
+        },
+      },
+      {
+        $unwind: {
+          path: '$roleDetails',
+        },
+      },
+      {
+        $project: {
+          id: 1,
+          name: 1,
+          email: 1,
+          contactNumber: 1,
+          role: '$roleDetails.name',
+          profileImg: 1,
+          isActive: 1,
+        },
+      },
+      {
+        $sort: { updatedAt: -1, createdAt: -1 },
+      },
+    ]);
+
+    console.log("userList from adminViewUserListController", userList)
 
     if (userList && userList.length > 0) {
       response.status(StatusCodes.OK).json({
@@ -157,7 +101,7 @@ export const adminViewUserListController = async (
 };
 
 export const adminManageStudentStatusController = async (
-  request: any,
+  request: CustomRequest,
   response: express.Response
 ) => {
   try {
@@ -198,20 +142,18 @@ export const adminManageStudentStatusController = async (
 };
 
 export const adminAddContactNumberController = async (
-  request: any,
-  response: express.Response
+  request: CustomRequest,
+  response: Response
 ) => {
   try {
-    const { email, role } = request.payload;
+    const { email, roleName } = request.payload || {};
     const { contactNumber } = request.body;
     console.log("Hello from adminAddContactNumberController ..!");
-    if (!email || !role) {
-      response
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Token not found" });
+    if (!email || !roleName) {
+      response.status(StatusCodes.NOT_FOUND).json({ message: Messages.PAYLOAD_MISSING_OR_INVALID });
     } else {
       const result = await userModel.updateOne(
-        { email, role },
+        { email, roleName },
         { $set: { contactNumber: contactNumber } }
       );
       if (result?.acknowledged) {
@@ -233,230 +175,66 @@ export const adminAddContactNumberController = async (
   }
 };
 
-export const adminRaiseQueryController = async (
-  request: any,
-  response: express.Response
-) => {
+export const registerUserController = async (request: CustomRequest, response: Response) => {
   try {
-    const { name, email, role } = request.payload;
-    const { subject, message } = request.body;
-    if (!subject || !message) {
-      response
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "Subject and Message are required  ..!" });
+    const {roleName, email: adminEmail} = request.payload || {};
+    const { name, email, contactNumber, role } = request.body;
+    console.log(`User Data to Register`, request.body)
+
+    if (!name || !email || !role) {
+      return response.status(StatusCodes.BAD_REQUEST).json({
+        message: "Missing required fields: name, email, and role are required.",
+      });
     }
-    const similaryExistingQuery = await queryModel.findOne({
-      userEmail: email,
-      userRole: role,
-      subject,
-      message,
+    const [firstName, lastName] = name.split(" ");
+    // Check if user already exists
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return response.status(StatusCodes.ALREADY_EXIST).json({
+        message: Messages.ALREADY_EXIST,
+      });
+    }
+    const roleId = await roleModel.findOne({ name: role });
+    if (!roleId) {
+      response.status(StatusCodes.FORBIDDEN).json({
+        message: `The Role You Provided is Unknown or Invalid, ${Messages.CREATION_FAILED}`,
+      });
+    }
+    const userId = await generateUniqueId(userModel, "USER")
+    const userData = await userModel.create({
+      id: userId,
+      firstName,
+      lastName,
+      email,
+      contactNumber,
+      roleId,
+      isActive: true,
+      createdBy: adminEmail,
+      updatedBy: adminEmail,
+      createrRole: roleName,
+      updaterRole: roleName,
+    })
+
+    if (!userData) {
+      response.status(StatusCodes.NO_CONTENT).json({
+        message: Messages.CREATION_FAILED,
+      });
+    }
+    response.status(StatusCodes.CREATED).json({
+      message: "User registered successfully!",
+      user: {
+        name: userData.firstName + userData.lastName,
+        email: userData.email,
+        contactNumber: userData.contactNumber,
+        role: userData.roleId,
+        isActive: userData.isActive,
+      },
     });
-    if (!similaryExistingQuery) {
-      const queryId = await generateQueryId(email, role);
-      const updatedQuery = await queryModel.create({
-        queryId: queryId,
-        userEmail: email,
-        userRole: role,
-        subject,
-        message,
-        conversation: [
-          {
-            sender: name,
-            email: email,
-            message: message,
-            role: role,
-            timestamp: new Date(),
-          },
-        ],
-      });
-      if (updatedQuery)
-        response
-          .status(StatusCodes.OK)
-          .json({ message: "Your query has been successfully added ..!" });
-    } else {
-      response
-        .status(StatusCodes.ALREADY_EXIST)
-        .json({ message: "A similar query has already been added by you ..!" });
-    }
   } catch (error) {
-    console.log(error);
-    response
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: "Failed to create query" });
-  }
-};
-
-export const adminResponseController = async (
-  request: any,
-  response: express.Response
-) => {
-  try {
-    const { name, email, role } = request.payload;
-    const { queryId } = request.params;
-    const { message } = request.body;
-    console.log("QueryId : ", queryId);
-
-    const query = await queryModel.findOne({ queryId: queryId });
-    console.log("Got Query ==> ", query?.status);
-    if (!query) {
-      response.status(StatusCodes.NOT_FOUND).json({ error: "Query not found" });
-    } else if (query.status === "Open" || query.status === "in-progress") {
-      console.log("Name ==> ", request.payload.name);
-      console.log("Email ==> ", request.payload.email);
-      console.log("Query ", query);
-      query.conversation.push({
-        sender: name,
-        email: email,
-        message,
-        role: role,
-        timestamp: new Date(),
-      });
-      await query.save();
-      console.log("After conversation.push:", query.conversation);
-      response.status(StatusCodes.CREATED).json({
-        message: "Your response has been sent to the Inquirer successfully!",
-      });
-    } else {
-      response
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ error: "Query has been closed by the user!" });
-    }
-    console.log("Query in adminResponseController : ", query);
-  } catch (error) {
-    console.log(error);
-    response
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: "Failed to find query" });
-  }
-};
-
-export const adminManageQueryStatusController = async (
-  request: any,
-  response: express.Response
-) => {
-  try {
-    const { queryId, status } = request.params;
-    const { userEmail } = request.body;
-    console.log("query id : ", queryId, userEmail);
-    if (!queryId || !status) {
-      return response
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ error: "Query ID and status are required" });
-    }
-
-    const result = await queryModel.updateOne(
-      { queryId: queryId, userEmail: userEmail },
-      { $set: { status: status } }
-    );
-
-    if (result?.acknowledged) {
-      console.log("Query status updated successfully");
-      response
-        .status(StatusCodes.CREATED)
-        .json({ message: "Query status updated to Closed successfully ..!" });
-    } else {
-      response
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Something went wrong ..!" });
-    }
-  } catch (error) {
-    response
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: "Failed to find query" });
-  }
-};
-
-export const adminAuthenticationController = async (
-  request: express.Request,
-  response: express.Response
-) => {
-  try {
-    const authHeader = request.headers["authorization"];
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return response
-        .status(401)
-        .json({ message: "Authorization token is missing or invalid" });
-    }
-    const token = authHeader.split(" ")[1];
-    const payload = await tokenVerifier(token, ADMIN_SECRET_KEY);
-    const result = await userModel.findOne({
-      email: payload.email,
-      role: payload.role,
-    });
-    const adminData = {
-      name: result?.name,
-      email: result?.email,
-      contactNumber: result?.contactNumber,
-      role: result?.role,
-      profileImg: result?.profileImg,
-    };
-    if (result?.status) {
-      response.status(StatusCodes.OK).json({
-        userData: adminData,
-        token: token,
-        message: "Authenntication Successfull ..!",
-      });
-    } else {
-      response
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Something went wrong ..!" });
-    }
-  } catch (err) {
-    console.log("Error while user authentication Controller", err);
+    console.error("Error registering user:", error);
     response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "Token Not verify please login then try to access ..!",
+      message: "An error occurred while registering the user.",
     });
   }
 };
 
-export const adminGetQueryDataController = async (
-  request: express.Request,
-  response: express.Response
-) => {
-  try {
-    const { queryId } = request.params;
-    const queryData = await queryModel.findOne(
-      { queryId: queryId },
-      { "conversation._id": 0, _id: 0 }
-    );
-    if (queryData) {
-      response
-        .status(StatusCodes.OK)
-        .json({ queryData: queryData, message: "Query has been f ..!" });
-    } else {
-      response.status(StatusCodes.NOT_FOUND).json({
-        queryData: null,
-        message: "Query Not found with this Id  ..!",
-      });
-    }
-  } catch (err) {
-    console.log("Error while user authentication Controller", err);
-    response.status(StatusCodes.UNAUTHORIZED).json({
-      message: "Token Not verify please login then try to access ..!",
-    });
-  }
-};
-
-// for backend
-export const adminAuthenticateJWT = async (
-  request: any,
-  response: express.Response,
-  next: Function
-) => {
-  try {
-    const authHeader = request.headers["authorization"];
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      response
-        .status(401)
-        .json({ message: "Authorization token is missing or invalid" });
-    }
-    const token = authHeader.split(" ")[1];
-    const payload = await tokenVerifier(token, ADMIN_SECRET_KEY);
-    request.payload = payload;
-    next();
-  } catch (error) {
-    response
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Invalid or expired Candidate token" });
-  }
-};
