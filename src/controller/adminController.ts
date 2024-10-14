@@ -100,42 +100,45 @@ export const adminViewUserListController = async (
   }
 };
 
+
 export const adminManageStudentStatusController = async (
   request: CustomRequest,
   response: express.Response
 ) => {
   try {
-    const { email, action } = request.params;
-    console.log("student id : ", email, "  action : ", action);
-    if (!email || !action) {
-      response
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ error: "Student ID and action are required" });
+    const { email, role, status } = request.body;
+    if (!email || (status !== false && status !== true)) {
+      return response.status(StatusCodes.BAD_REQUEST).json({ mesage: Messages.MISSING_OR_INVALID });
     }
 
-    const status = action === "true" ? true : action === "false" ? false : null;
-    if (status === null) {
-      response
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ error: "Invalid action. Use true or false." });
-    }
+    // Convert status to boolean
+    const statusToUpdate = status;
+    console.log("status to update ", statusToUpdate)
 
+    if (role === "Admin") {
+      return response.status(StatusCodes.FORBIDDEN).json({ message: Messages.UPDATION_FAILED });
+    }
+    console.log("status to update ", statusToUpdate)
     const result = await userModel.updateOne(
-      { email: email, role: "Student" },
-      { $set: { status: action } }
+      { email: email },
+      { $set: { isActive: statusToUpdate } }
     );
+
+    console.log("result ", result)
+
     if (result?.acknowledged) {
-      console.log("Student Status updated  successfully ..!");
-      response
+      console.log("User status updated successfully ..!");
+      return response
         .status(StatusCodes.OK)
-        .json({ message: "Student Status updated successfully ..!" });
+        .json({ message: "User status updated successfully ..!" });
     } else {
-      response
+      return response
         .status(StatusCodes.NOT_FOUND)
-        .json({ error: "Student not found or _id mismatch" });
+        .json({ error: "User not found or update failed" });
     }
   } catch (error) {
-    response
+    console.error("Error updating user status:", error);
+    return response
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ error: "Something went wrong" });
   }
@@ -177,7 +180,7 @@ export const adminAddContactNumberController = async (
 
 export const registerUserController = async (request: CustomRequest, response: Response) => {
   try {
-    const {roleName, email: adminEmail} = request.payload || {};
+    const { roleName, email: adminEmail } = request.payload || {};
     const { name, email, contactNumber, role } = request.body;
     console.log(`User Data to Register`, request.body)
 

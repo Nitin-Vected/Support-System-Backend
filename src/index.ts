@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./model/connection";
 import userRouter from "./routes/userRouter";
-import { PORT, PRODUCTION_ORIGIN } from "./config";
+import { LOCAL_ORIGIN, PORT, PRODUCTION_ORIGIN } from "./config";
 import adminRouter from "./routes/adminRouter";
 import http from "http";
 import { Server } from "socket.io";
@@ -21,9 +21,9 @@ connectDB();
 
 // CORS middleware
 app.use(cors({
-    origin: PRODUCTION_ORIGIN, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
+  origin: PRODUCTION_ORIGIN,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
 }));
 
 app.use(express.urlencoded({ extended: true }));

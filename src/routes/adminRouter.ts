@@ -31,7 +31,7 @@ adminRouter.get('/adminGetQueryData/:queryId',getQueryDataController);
 adminRouter.get("/adminViewUserList", adminViewUserListController);
 
 adminRouter.post('/adminManageQueryStatus/:queryId/:status', manageQueryStatusController);
-adminRouter.get('/adminManageStudentStatus/:email/:action',adminManageStudentStatusController);
+adminRouter.post('/adminManageStudentStatus',adminManageStudentStatusController);
 
 adminRouter.post("/adminRaiseQuery", createQueryController);
 adminRouter.post("/adminAddResponseToQuery/:queryId",HandleQueryResponseController);
