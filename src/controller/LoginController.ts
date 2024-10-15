@@ -96,3 +96,5 @@ export const loginController = async (
     return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.SOMETHING_WENT_WRONG });
   }
 };
+
+

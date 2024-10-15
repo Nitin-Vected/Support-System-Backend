@@ -10,6 +10,7 @@ const userRouter = express.Router();
 userRouter.post("/userLogin", loginController);
 userRouter.get("/userAuthentication", authenticationController);
 
+
 userRouter.use(authenticateJWT);
 
 userRouter.get("/viewProfile",viewProfileController)
