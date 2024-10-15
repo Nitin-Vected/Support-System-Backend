@@ -11,8 +11,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: PRODUCTION_ORIGIN,
-    // origin: LOCAL_ORIGIN,
+    // origin: PRODUCTION_ORIGIN,
+    origin: LOCAL_ORIGIN,
     methods: ["GET", "POST"],
   },
 });
@@ -22,9 +22,10 @@ connectDB();
 
 // CORS middleware
 app.use(cors({
-  origin: PRODUCTION_ORIGIN,
+  // origin: PRODUCTION_ORIGIN,
+  origin: LOCAL_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
+  credentials: true
 }));
 
 app.use(express.urlencoded({ extended: true }));
