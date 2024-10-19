@@ -244,7 +244,7 @@ export const registerUserController = async (request: CustomRequest, response: R
 
 export const examplerController = async (request: CustomRequest, response: Response) => {
   try {
-    console.log("Inside ExamplerController  AND NEW ")
+    console.log("Inside ExamplerController  AND NEW JD11 ")
   } catch (error) {
     console.error("Error registering user:", error);
     response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
