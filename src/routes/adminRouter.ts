@@ -3,6 +3,7 @@ import {
   adminManageStudentStatusController,
   adminViewRaisedQueryListController,
   adminViewUserListController,
+  examplerController,
   registerUserController,
 } from "../controller/adminController";
 import { updateContactNumberController, viewProfileController } from "../controller/profileController";
@@ -25,6 +26,7 @@ adminRouter.get("/adminAuthentication", authenticationController);
 adminRouter.use(authenticateJWT);
 
 adminRouter.get("/adminViewProfile", viewProfileController);
+adminRouter.get("/example", examplerController);
 adminRouter.get("/adminViewRaisedQueries", adminViewRaisedQueryListController);
 adminRouter.get('/adminGetQueryData/:queryId',getQueryDataController);
 
