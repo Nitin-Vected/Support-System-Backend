@@ -1,3 +1,4 @@
+// This is Admin Controller
 import express from "express";
 import { CustomRequest, generateUniqueId, Messages, StatusCodes } from "../config";
 import queryModel from "../model/queryModel";
