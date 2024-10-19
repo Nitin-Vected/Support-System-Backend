@@ -1,6 +1,6 @@
 import express, { Request } from 'express';
 import { updateContactNumberController, viewProfileController } from '../controller/profileController';
-import { loginController } from '../controller/loginController';
+import { loginController } from '../controller/LoginController';
 import { authenticateJWT, authenticationController } from '../controller/authController';
 import { createQueryController, getQueryDataController, HandleQueryResponseController, manageQueryStatusController, viewMyQueriesController } from '../controller/queryController';
 
