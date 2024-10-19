@@ -46,25 +46,16 @@ export const loginController = async (
     }
 
     let user = await userModel.findOne({ email: email });
-    if (user) {
+        if (!user) {
+      return response.status(StatusCodes.NOT_FOUND).json({
+  message: Messages.USER_NOT_FOUND
+});
+    }
       user.email = email;
       user.firstName = given_name;
       user.lastName = family_name;
       user.profileImg = picture;
       await user.save();
-    } else {
-      const userId = await generateUniqueId(userModel, "USER");
-      user = await userModel.create({
-        id: userId,
-        email,
-        firstName: given_name,
-        lastName: family_name,
-        profileImg: picture,
-        roleId: "ROLE0002",
-        contactNumber: "8319024349",
-        isActive: true,
-      });
-    }
 
     const roleDetails = await roleModel.findOne({ id: user.roleId });
     const result = {
@@ -96,5 +87,3 @@ export const loginController = async (
     return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.SOMETHING_WENT_WRONG });
   }
 };
-
-

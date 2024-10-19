@@ -55,7 +55,7 @@ export const HandleQueryResponseController = async (
         }
     } catch (error) {
         console.error("Error in adminResponseController:", error);
-        return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Failed to process the query." });
+        return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Failed to process the query." });       
     }
 };
 
@@ -125,7 +125,7 @@ export const manageQueryStatusController = async (
         }
     } catch (error) {
         console.error("Error while updating query status:", error);
-        return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to update query status." });
+        return response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Failed to update query status." });       
     }
 };
 
@@ -176,7 +176,7 @@ export const viewMyQueriesController = async (request: CustomRequest, response: 
         if (myQueries) {
             response.status(StatusCodes.OK).json({ myQueries: myQueries, message: "These are the recently raised queries by you ..!" });
         } else {
-            response.status(StatusCodes.NOT_FOUND).json({ myQueries: null, message: "No Queries are added by You ..!" });
+            response.status(StatusCodes.NOT_FOUND).json({ myQueries: null, message: "No Queries are added by You ..!" });  
         }
     } catch (error) {
         console.log('Error occure in userRaiseQueryController : ', error)

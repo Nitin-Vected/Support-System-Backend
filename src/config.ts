@@ -65,9 +65,9 @@ interface UserPayload {
 export default UserPayload;
 
 export interface CustomRequest extends Request {
-    params: { 
+    params: {
         userId?: string;
-        queryId?: string; 
+        queryId?: string;
         status?: string;
         email?: string;
         action?: string;

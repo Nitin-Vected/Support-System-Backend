@@ -197,8 +197,8 @@ export const registerUserController = async (request: CustomRequest, response: R
         message: Messages.ALREADY_EXIST,
       });
     }
-    const roleId = await roleModel.findOne({ name: role });
-    if (!roleId) {
+      const roleDetails = await roleModel.findOne({ name: role });
+    if (!roleDetails) {
       response.status(StatusCodes.FORBIDDEN).json({
         message: `The Role You Provided is Unknown or Invalid, ${Messages.CREATION_FAILED}`,
       });
@@ -210,13 +210,13 @@ export const registerUserController = async (request: CustomRequest, response: R
       lastName,
       email,
       contactNumber,
-      roleId,
+      roleId: roleDetails?.id,
       isActive: true,
       createdBy: adminEmail,
       updatedBy: adminEmail,
       createrRole: roleName,
       updaterRole: roleName,
-    })
+    });
 
     if (!userData) {
       response.status(StatusCodes.NO_CONTENT).json({
@@ -240,4 +240,3 @@ export const registerUserController = async (request: CustomRequest, response: R
     });
   }
 };
-
