@@ -46,7 +46,7 @@ jobs:
         echo "PRODUCTION_ORIGIN=${{ secrets.PRODUCTION_ORIGIN }}" >> .env
       shell: bash
 
-     - name: Stop and Delete Existing PM2 Processes
+    - name: Stop and Delete Existing PM2 Processes
       run: |
         pm2 stop all
         pm2 delete all
