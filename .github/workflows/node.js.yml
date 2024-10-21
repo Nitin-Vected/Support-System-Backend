@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4  # Add the `uses` key here
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
@@ -46,10 +46,15 @@ jobs:
         echo "PRODUCTION_ORIGIN=${{ secrets.PRODUCTION_ORIGIN }}" >> .env
       shell: bash
 
-    - name: Stop and Delete Existing PM2 Processes
-      run: |
-        pm2 stop all
-        pm2 delete all
+    - name: Build Project
+      run: npm run build --if-present
 
-    - name: Restart Server with PM2
-      run: pm2 start dist/index.js --name Support-System-Backend
+    - name: Check if PM2 Process at Index 0 is Running
+      run: |
+        if pm2 describe 0 > /dev/null; then
+          echo "PM2 process at index 0 is running, restarting it..."
+          pm2 restart 0
+        else
+          echo "No PM2 process at index 0, starting a new one..."
+          pm2 start dist/index.js --name "Support-System-Backend"
+        fi
