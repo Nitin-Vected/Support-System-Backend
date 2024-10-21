@@ -46,10 +46,10 @@ jobs:
         echo "PRODUCTION_ORIGIN=${{ secrets.PRODUCTION_ORIGIN }}" >> .env
       shell: bash
 
-    - name: Stop and Delete "Support-System-Backend" PM2 Process
+    - name: Stop and Delete Existing PM2 Processes
       run: |
-        pm2 stop "Support-System-Backend" || true
-        pm2 delete "Support-System-Backend" || true
+        pm2 stop all
+        pm2 delete all
 
     - name: Restart Server with PM2
       run: pm2 start dist/index.js --name "Support-System-Backend"
