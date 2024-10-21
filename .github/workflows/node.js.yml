@@ -1,4 +1,5 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# This workflow will do a clean installation of node dependencies, cache/restore them,
+# build the source code, and run tests across different versions of node.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Node.js CI
@@ -11,7 +12,6 @@ on:
 
 jobs:
   build:
-
     runs-on: self-hosted
 
     strategy:
@@ -21,12 +21,37 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        cache: 'npm' # Enable npm caching
+
+    - name: Cache Node modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+          node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ matrix.node-version }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ matrix.node-version }}
+
+    - name: Set up environment variables
+      env:
+        CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
+        GOOGLE_DECODE_TOKEN_API: ${{ secrets.GOOGLE_DECODE_TOKEN_API }}
+        PORT: ${{ secrets.PORT }}
+        USER_SECRET_KEY: ${{ secrets.USER_SECRET_KEY }}
+        STUDENT_SECRET_KEY: ${{ secrets.STUDENT_SECRET_KEY }}
+        ADMIN_SECRET_KEY: ${{ secrets.ADMIN_SECRET_KEY }}
+        LOCAL_ORIGIN: ${{ secrets.LOCAL_ORIGIN }}
+        PRODUCTION_ORIGIN: ${{ secrets.PRODUCTION_ORIGIN }}
+      
     - run: npm install
+
     - run: npm run build --if-present
+
     - run: pm2 restart 0
-    # - run: pm2 start dist/index.js --name "Support-System-Backend" 
+    # - run: pm2 start dist/index.js --name "Support-System-Backend"
